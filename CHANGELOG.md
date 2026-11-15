@@ -7,3 +7,9 @@
 - Added generic Compose/monitoring examples, private operational templates and a documentation checker.
 - Separated written procedures from untested runtime behavior and missing custom implementations.
 - No infrastructure deployment or clean-room installation was performed.
+
+## Publication privacy checks
+
+- Added a text/history privacy guard and read-only CI checks.
+- Documented external private denylists, neutral commit identities and the limits of automated scanning.
+- Kept real deployment documentation outside the guide.

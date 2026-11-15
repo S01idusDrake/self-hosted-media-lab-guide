@@ -5,6 +5,7 @@
 - Documentation was newly written around generic roles and placeholders, rather than exporting private configuration.
 - Upstream primary references were consulted for core software; version-sensitive details are linked to their owners.
 - Local relative Markdown links, text privacy rules and template structure are checked by `python3 tools/check_docs.py`.
+- The publication guard `python3 tools/check_privacy.py --history` checks publishable text and reachable Git metadata/blobs; a private external denylist adds installation-specific checks.
 - YAML syntax can be checked separately; actual Docker Compose schema/runtime validation requires Docker on a staging system.
 
 ## What has not been proved
