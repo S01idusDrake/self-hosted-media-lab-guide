@@ -1,0 +1,23 @@
+# Real deployments and reports belong outside this generic repository.
+.DS_Store
+.env
+.env.*
+!.env.example
+private/
+secrets/
+config/
+raw/
+reports/
+backups/
+*.pem
+*.key
+*.p12
+*.pfx
+*.cms
+*.sqlite*
+*.db*
+*.log
+*.zip
+*.tar*
+*.xlsx
+__pycache__/

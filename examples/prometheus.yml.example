@@ -1,0 +1,29 @@
+# Schematic only: replace target placeholders, install exporters and validate privately.
+global:
+  scrape_interval: 30s
+rule_files:
+  - alerts.yml
+scrape_configs:
+  - job_name: linux-hosts
+    static_configs:
+      - targets: ["<MEDIA_IP>:9100"]
+        labels:
+          role: media-node
+      - targets: ["<APPS_IP>:9100"]
+        labels:
+          role: apps-node
+  - job_name: application-probes
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets: ["http://<MEDIA_IP>:8096/health"]
+        labels:
+          service: jellyfin
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: "<BLACKBOX_ADDRESS>:9115"

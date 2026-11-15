@@ -1,0 +1,14 @@
+# 22. Library imports, naming, metadata and duplicates
+
+**Run on:** app UIs and admin workstation; healthy media only. **Requires:** accepted backup/recovery and a small approved test set. **Produces:** predictable organization with a rollback record.
+
+1. Agree on separate movie, TV and music roots. Use the server/manager's current recommended naming patterns: movie title/year, TV series/season/episode identifiers and music artist/album/track identity. Keep download and imported-media paths distinct inside the common filesystem tree.
+2. Before importing existing content into a manager, inventory a bounded sample privately, match it in the UI and inspect proposed paths/profile/monitoring. Choose whether files remain where they are or are intentionally moved. Do not enable automatic missing searches for an entire existing library.
+3. Use dry-run/preview for rename operations and save an exact old-to-new mapping privately. Change a small batch, verify manager and Jellyfin paths plus playback and only then broaden. A move across filesystems can become copy/delete; it is not necessarily a hardlink-preserving rename.
+4. For movie/episode compatibility, inspect actual video/audio/subtitle streams with a trusted media inspection tool. Release-label codec rules help selection but do not verify bitstreams. Re-encoding costs time/quality; prefer an authorized compatible source or client when suitable. Keep the original until a replacement has been checked through playback.
+5. For music, verify album edition, track count/disc numbers, release dates, artist credits and compilation handling. Fix a small copy/test batch with a maintained tagging tool; avoid automatically rewriting every tag or preserving contradictory album-art files. Back up original metadata where important.
+6. For artwork issues, check storage readability/permissions before triggering regeneration. Refresh only affected items. Keep user/watch data and existing correct artwork intact.
+7. Audit duplicates by identity and content with an explicit plan. Identical names are not proof of identical media; different sizes may be alternate editions; hardlinks share bytes already. Any full hashing scan is disk-intensive and inappropriate on a failing source. Build a review report, then approve individual cleanup separately.
+8. Retain sidecars needed for subtitles, metadata or extras. Do not classify every small non-video file as junk. Review unmanaged extras before removal and keep an accepted rollback copy on healthy independent storage.
+
+Checkpoint: one movie, one episode and one album retain correct identity, permission, linkage and playback after the approved change. Maintain private before/after evidence. This edition does not distribute destructive deduplication, bulk-renaming or artwork-replacement scripts.

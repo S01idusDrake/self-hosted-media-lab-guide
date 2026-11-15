@@ -1,0 +1,187 @@
+name: media-lab
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+x-identity: &identity
+  PUID: ${PUID:?Choose the media writer numeric UID}
+  PGID: ${PGID:?Choose the shared numeric GID}
+  TZ: ${TZ:?Choose a timezone}
+  UMASK: "002"
+x-probe: &probe
+  interval: 30s
+  timeout: 10s
+  start_period: 60s
+  retries: 3
+services:
+  prowlarr:
+    image: ${PROWLARR_IMAGE:?Choose a reviewed prowlarr image reference}
+    restart: unless-stopped
+    environment: *identity
+    ports:
+      - "127.0.0.1:9696:9696"
+    volumes:
+      - type: bind
+        source: ${CONFIG_ROOT:?Choose a local SSD configuration root}/prowlarr
+        target: /config
+        bind:
+          create_host_path: false
+    logging: *logging
+    healthcheck:
+      <<: *probe
+      test: ["CMD", "curl", "-fsS", "--max-time", "5", "-o", "/dev/null", "http://127.0.0.1:9696/ping"]
+  radarr:
+    image: ${RADARR_IMAGE:?Choose a reviewed radarr image reference}
+    restart: unless-stopped
+    environment: *identity
+    ports:
+      - "127.0.0.1:7878:7878"
+    volumes:
+      - type: bind
+        source: ${CONFIG_ROOT:?Choose a local SSD configuration root}/radarr
+        target: /config
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${DATA_ROOT:?Verify the media mount root}
+        target: /data
+        bind:
+          create_host_path: false
+    logging: *logging
+    healthcheck:
+      <<: *probe
+      test: ["CMD", "curl", "-fsS", "--max-time", "5", "-o", "/dev/null", "http://127.0.0.1:7878/ping"]
+  sonarr:
+    image: ${SONARR_IMAGE:?Choose a reviewed sonarr image reference}
+    restart: unless-stopped
+    environment: *identity
+    ports:
+      - "127.0.0.1:8989:8989"
+    volumes:
+      - type: bind
+        source: ${CONFIG_ROOT:?Choose a local SSD configuration root}/sonarr
+        target: /config
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${DATA_ROOT:?Verify the media mount root}
+        target: /data
+        bind:
+          create_host_path: false
+    logging: *logging
+    healthcheck:
+      <<: *probe
+      test: ["CMD", "curl", "-fsS", "--max-time", "5", "-o", "/dev/null", "http://127.0.0.1:8989/ping"]
+  lidarr:
+    image: ${LIDARR_IMAGE:?Choose a reviewed lidarr image reference}
+    restart: unless-stopped
+    environment: *identity
+    ports:
+      - "127.0.0.1:8686:8686"
+    volumes:
+      - type: bind
+        source: ${CONFIG_ROOT:?Choose a local SSD configuration root}/lidarr
+        target: /config
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${DATA_ROOT:?Verify the media mount root}
+        target: /data
+        bind:
+          create_host_path: false
+    logging: *logging
+    healthcheck:
+      <<: *probe
+      test: ["CMD", "curl", "-fsS", "--max-time", "5", "-o", "/dev/null", "http://127.0.0.1:8686/"]
+  ombi:
+    image: ${OMBI_IMAGE:?Choose a reviewed ombi image reference}
+    restart: unless-stopped
+    environment: *identity
+    ports:
+      - "127.0.0.1:3579:3579"
+    volumes:
+      - type: bind
+        source: ${CONFIG_ROOT:?Choose a local SSD configuration root}/ombi
+        target: /config
+        bind:
+          create_host_path: false
+    logging: *logging
+    healthcheck:
+      <<: *probe
+      test: ["CMD", "curl", "-fsS", "--max-time", "5", "-o", "/dev/null", "http://127.0.0.1:3579/"]
+  seerr:
+    image: ${SEERR_IMAGE:?Choose a reviewed Seerr image reference}
+    init: true
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:?Choose a timezone}
+    ports:
+      - "127.0.0.1:5055:5055"
+    volumes:
+      - type: bind
+        source: ${CONFIG_ROOT:?Choose a local SSD configuration root}/seerr
+        target: /app/config
+        bind:
+          create_host_path: false
+    logging: *logging
+    healthcheck:
+      <<: *probe
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:5055/api/v1/settings/public"]
+  gluetun:
+    profiles: [downloads]
+    image: ${GLUETUN_IMAGE:?Choose a reviewed Gluetun image reference}
+    restart: unless-stopped
+    cap_add: [NET_ADMIN]
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    environment:
+      TZ: ${TZ:?Choose a timezone}
+      VPN_SERVICE_PROVIDER: ${VPN_PROVIDER:?Select a supported OpenVPN provider}
+      VPN_TYPE: openvpn
+      OPENVPN_USER_SECRETFILE: /run/secrets/openvpn_user
+      OPENVPN_PASSWORD_SECRETFILE: /run/secrets/openvpn_password
+      FIREWALL_INPUT_PORTS: "8085"
+    secrets: [openvpn_user, openvpn_password]
+    volumes:
+      - type: bind
+        source: ${CONFIG_ROOT:?Choose a local SSD configuration root}/gluetun
+        target: /gluetun
+        bind:
+          create_host_path: false
+    ports:
+      - "127.0.0.1:8085:8085"
+    logging: *logging
+    # Retain the selected image's built-in application health check.
+  qbittorrent:
+    profiles: [downloads]
+    image: ${QBITTORRENT_IMAGE:?Choose a reviewed qBittorrent image reference}
+    restart: unless-stopped
+    network_mode: service:gluetun
+    depends_on:
+      gluetun:
+        condition: service_healthy
+        restart: true
+    environment:
+      <<: *identity
+      WEBUI_PORT: "8085"
+    volumes:
+      - type: bind
+        source: ${CONFIG_ROOT:?Choose a local SSD configuration root}/qbittorrent
+        target: /config
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${DATA_ROOT:?Verify the media mount root}
+        target: /data
+        bind:
+          create_host_path: false
+    logging: *logging
+    healthcheck:
+      <<: *probe
+      test: ["CMD", "curl", "-fsS", "--max-time", "5", "-o", "/dev/null", "http://127.0.0.1:8085/"]
+secrets:
+  openvpn_user:
+    file: ./secrets/openvpn_user
+  openvpn_password:
+    file: ./secrets/openvpn_password

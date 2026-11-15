@@ -1,0 +1,1 @@
+component,role,host,address_or_internal_endpoint,network_dependencies,persistent_mounts,startup_policy,configuration_location,image_or_version,health_check,backup_scope,verification_time,evidence,confidence,vault_reference_only
